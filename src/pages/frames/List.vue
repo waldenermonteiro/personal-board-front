@@ -10,7 +10,7 @@
       v-bind="{ group: 'frames-group' }"
     >
       <transition-group ref="scroll" class="row flex-nowrap overflow-auto" style="height:100%" type="transition" name="flip-list">
-        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.order" xs="6" sm="4" md="3" class="list-group-item">
+        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.position" xs="6" sm="4" md="3" class="list-group-item">
           <v-toolbar color="deep-purple" dark dense>
             <v-toolbar-title @click="test()">{{ frame.title }}</v-toolbar-title>
             <v-spacer></v-spacer>
@@ -29,7 +29,7 @@
             </v-menu>
           </v-toolbar>
           <v-card class="list-group-item">
-            <list-tasks :frames="framesCustom" :list="frame.todos" :frame="frame"></list-tasks>
+            <list-tasks :frames="framesCustom" :list="frame.tasks" :frame="frame"></list-tasks>
           </v-card>
         </v-col>
         <v-col md="3" :key="1000" @mouseover="disabledDraggable(true)">
@@ -109,7 +109,7 @@ export default {
       this.inputVisible = value
     },
     createFrame (form) {
-      const frame = { ...form, order: this.framesCustom.length }
+      const frame = { ...form, position: this.framesCustom.length }
       this.$createOrUpdate({
         urlDispatch: 'Frame/create',
         params: frame,
@@ -130,7 +130,7 @@ export default {
     },
     updateFrames () {
       for (let index = 0; index < this.framesCustom.length; index++) {
-        const frame = { ...this.framesCustom[index], order: index }
+        const frame = { ...this.framesCustom[index], position: index }
         this.$createOrUpdate({
           urlDispatch: 'Frame/update',
           params: frame

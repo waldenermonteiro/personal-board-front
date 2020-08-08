@@ -52,7 +52,7 @@ export default {
   methods: {
     createTask (list) {
       if (this.form.title !== '') {
-        const task = { order: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
+        const task = { position: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
         this.$createOrUpdate({
           urlDispatch: 'Task/create',
           params: task,
@@ -75,8 +75,8 @@ export default {
     terminateMove () {
       const pastPresentFrames = this.frames.filter(frame => frame.id === this.pastFrame.frame_id || frame.id === this.presentFrame.frame_id)
       for (const frame of pastPresentFrames) {
-        for (const [index, task] of frame.todos.entries()) {
-          task.order = index
+        for (const [index, task] of frame.tasks.entries()) {
+          task.position = index
           if (task.frame_id !== frame.id) {
             task.frame_id = frame.id
           }
