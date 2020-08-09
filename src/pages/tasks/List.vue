@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-list color="#f6f6f4" three-line>
-      <draggable :list="list" ghost-class="ghost" :move="checkMove" @start="dragging = true" @end="terminateMove" v-bind="{ group: 'tasks-group' }">
-        <transition-group class="list-custom" type="transition" name="flip-list">
+      <draggable :list="list" ghost-class="ghost" @start="dragging = true" @end="terminateMove" v-bind="{ group: 'tasks-group' }">
+        <transition-group class="list-custom" type="transition" name="flip-list" :id="frame.id">
           <v-list-item v-for="task in list" :key="task.id" class="list-group-item">
             <v-card class="v-card-custom">
               <v-list-item-content>
@@ -44,9 +44,7 @@ export default {
       formCopy: {
         title: ''
       },
-      form: { ...this.formCopy },
-      pastFrame: {},
-      presentFrame: {}
+      form: { ...this.formCopy }
     }
   },
   methods: {
@@ -68,23 +66,21 @@ export default {
         ...this.formCop
       }
     },
-    checkMove (e) {
-      this.pastFrame = e.draggedContext.element
-      this.presentFrame = e.relatedContext.element
-    },
-    terminateMove () {
-      const pastPresentFrames = this.frames.filter(frame => frame.id === this.pastFrame.frame_id || frame.id === this.presentFrame.frame_id)
+    terminateMove (e) {
+      const pastFrameId = e.from.id
+      const presentFrameId = e.to.id
+      const pastPresentFrames = this.frames.filter(frame => frame.id === pastFrameId || frame.id === presentFrameId)
       for (const frame of pastPresentFrames) {
         for (const [index, task] of frame.tasks.entries()) {
           task.position = index
           if (task.frame_id !== frame.id) {
             task.frame_id = frame.id
           }
-          this.updateFrame(task)
+          this.updateTask(task)
         }
       }
     },
-    updateFrame (task) {
+    updateTask (task) {
       this.$createOrUpdate({
         urlDispatch: 'Task/update',
         params: task
