@@ -11,8 +11,21 @@
     >
       <transition-group ref="scroll" class="row flex-nowrap overflow-auto" style="height:100%" type="transition" name="flip-list">
         <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.position" xs="6" sm="4" md="3" class="list-group-item">
-          <v-toolbar color="deep-purple" dark dense>
-            <v-toolbar-title @click="test()">{{ frame.title }}</v-toolbar-title>
+          <v-toolbar @click="enableInputUpdateFrameTitle(frame.title)" color="deep-purple" :dark="!inputFrameTitle" dense>
+            <v-toolbar-title v-if="!inputFrameTitle">{{ frame.title }} </v-toolbar-title>
+            <v-text-field
+              v-else
+              style="width: 100%"
+              @blur="updateFrameTitle(frame)"
+              @keyup.enter="updateFrameTitle(frame)"
+              v-model="frameTitle"
+              ref="inputFrameTitle"
+              hide-details
+              solo
+              dense
+              placeholder="Enter a title for this frame"
+              outlined
+            ></v-text-field>
             <v-spacer></v-spacer>
             <v-menu offset-y>
               <template v-slot:activator="{ on, attrs }">
@@ -33,13 +46,13 @@
           </v-card>
         </v-col>
         <v-col md="3" :key="1000" @mouseover="disabledDraggable(true)">
-          <v-toolbar v-if="!inputVisible" dense class="toolbar-custom" @click="activateTextArea(true)">
+          <v-toolbar v-if="!inputVisible" dense class="toolbar-custom" @click="enableInputCreateFrame(true)">
             <v-toolbar-title> <v-icon>mdi-plus</v-icon>Add other list</v-toolbar-title>
           </v-toolbar>
           <div v-show="inputVisible" style="background-color:#f6f6f4;padding: 8px">
             <v-text-field
               v-model="form.title"
-              ref="textFrame"
+              ref="inputCreateFrame"
               class="pb-2"
               hide-details
               solo
@@ -75,8 +88,10 @@ export default {
     form: {
       title: ''
     },
+    frameTitle: '',
     pastFrame: {},
-    presentFrame: {}
+    presentFrame: {},
+    inputFrameTitle: false
   }),
   computed: {
     ...mapState('Frame', ['frames'])
@@ -105,8 +120,18 @@ export default {
     disabledDraggable (value) {
       this.disabled = value
     },
-    activateTextArea (value) {
+    enableInputCreateFrame (value) {
       this.inputVisible = value
+      this.$nextTick(() => {
+        this.$refs.inputCreateFrame.focus()
+      })
+    },
+    enableInputUpdateFrameTitle (title) {
+      this.inputFrameTitle = true
+      this.$nextTick(() => {
+        this.$refs.inputFrameTitle[0].focus()
+        this.frameTitle = title
+      })
     },
     createFrame (form) {
       const frame = { ...form, position: this.framesCustom.length }
@@ -115,7 +140,7 @@ export default {
         params: frame,
         callback: () => {
           this.clearForm()
-          this.activateTextArea(false)
+          this.enableInputCreateFrame(false)
           this.$list({
             urlDispatch: 'Frame/list',
             callback: () => {
@@ -126,6 +151,14 @@ export default {
             }
           })
         }
+      })
+    },
+    updateFrameTitle (frame) {
+      this.inputFrameTitle = false
+      frame.title = this.frameTitle
+      this.$createOrUpdate({
+        urlDispatch: 'Frame/update',
+        params: { ...frame, title: this.frameTitle }
       })
     },
     updateFrames () {
@@ -144,7 +177,7 @@ export default {
         callback: () => {
           this.$list({ urlDispatch: 'Frame/list' })
           this.clearForm()
-          this.activateTextArea(false)
+          this.enableInputCreateFrame(false)
         }
       })
     },
