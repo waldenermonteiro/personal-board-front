@@ -11,14 +11,14 @@
     >
       <transition-group ref="scroll" class="row flex-nowrap overflow-auto" style="height:100%" type="transition" name="flip-list">
         <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.position" xs="6" sm="4" md="3" class="list-group-item">
-          <v-toolbar @click="enableInputUpdateFrameTitle(frame.title)" color="deep-purple" :dark="!inputFrameTitle" dense>
-            <v-toolbar-title v-if="!inputFrameTitle">{{ frame.title }} </v-toolbar-title>
+          <v-toolbar @click="enableInputUpdateFrameTitle(frame)" color="deep-purple" :dark="positionFrame !== frame.position" dense>
+            <v-toolbar-title v-if="positionFrame !== frame.position">{{ frame.title }} </v-toolbar-title>
             <v-text-field
               v-else
               style="width: 100%"
               @blur="updateFrameTitle(frame)"
               @keyup.enter="updateFrameTitle(frame)"
-              v-model="frameTitle"
+              v-model="frame.title"
               ref="inputFrameTitle"
               hide-details
               solo
@@ -88,10 +88,9 @@ export default {
     form: {
       title: ''
     },
-    frameTitle: '',
     pastFrame: {},
     presentFrame: {},
-    inputFrameTitle: false
+    positionFrame: ''
   }),
   computed: {
     ...mapState('Frame', ['frames'])
@@ -126,11 +125,10 @@ export default {
         this.$refs.inputCreateFrame.focus()
       })
     },
-    enableInputUpdateFrameTitle (title) {
-      this.inputFrameTitle = true
+    enableInputUpdateFrameTitle (frame) {
+      this.positionFrame = frame.position
       this.$nextTick(() => {
         this.$refs.inputFrameTitle[0].focus()
-        this.frameTitle = title
       })
     },
     createFrame (form) {
@@ -154,11 +152,10 @@ export default {
       })
     },
     updateFrameTitle (frame) {
-      this.inputFrameTitle = false
-      frame.title = this.frameTitle
+      this.positionFrame = ''
       this.$createOrUpdate({
         urlDispatch: 'Frame/update',
-        params: { ...frame, title: this.frameTitle }
+        params: frame
       })
     },
     updateFrames () {
