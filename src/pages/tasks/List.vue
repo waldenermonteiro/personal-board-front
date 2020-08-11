@@ -13,12 +13,12 @@
         </transition-group>
       </draggable>
       <div class="input-task" v-if="enableCreate">
-        <v-textarea v-model="form.title" class="pb-2" hide-details solo label="Enter a title for this task"></v-textarea>
+        <v-textarea ref="textAreaTaskTitle" v-model="form.title" class="pb-2" hide-details solo label="Enter a title for this task"></v-textarea>
         <v-btn @click="createTask(list)" color="success" small>Add task</v-btn>
         <v-btn @click="enableCreate = false" small icon><v-icon>mdi-close</v-icon></v-btn>
       </div>
     </v-list>
-    <div @click="enableCreate = true" v-if="!enableCreate" class="div-new-task"><v-icon>mdi-plus</v-icon>Add a new task</div>
+    <div @click="enableInputCreateTask" v-if="!enableCreate" class="div-new-task"><v-icon>mdi-plus</v-icon>Add a new task</div>
   </div>
 </template>
 <script>
@@ -48,6 +48,12 @@ export default {
     }
   },
   methods: {
+    enableInputCreateTask () {
+      this.enableCreate = true
+      this.$nextTick(() => {
+        this.$refs.textAreaTaskTitle.focus()
+      })
+    },
     createTask (list) {
       if (this.form.title !== '') {
         const task = { position: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
