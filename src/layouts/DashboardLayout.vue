@@ -42,8 +42,9 @@ export default {
       if (split.length > 1) {
         const numberTwo = split[1].substring(0, 1)
         user.abbreviation = numberOne + numberTwo
+      } else {
+        user.abbreviation = numberOne
       }
-      user.abbreviation = numberOne
     }
   }
 }
