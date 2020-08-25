@@ -56,7 +56,7 @@ export default {
     },
     createTask (list) {
       if (this.form.title !== '') {
-        const task = { position: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
+        const task = { collocation: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
         this.$createOrUpdate({
           urlDispatch: 'Task/create',
           params: task,
@@ -78,7 +78,7 @@ export default {
       const pastPresentFrames = this.frames.filter(frame => frame.id === pastFrameId || frame.id === presentFrameId)
       for (const frame of pastPresentFrames) {
         for (const [index, task] of frame.tasks.entries()) {
-          task.position = index
+          task.collocation = index
           if (task.frame_id !== frame.id) {
             task.frame_id = frame.id
           }

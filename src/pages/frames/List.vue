@@ -10,9 +10,9 @@
       v-bind="{ group: 'frames-group' }"
     >
       <transition-group ref="scroll" class="row flex-nowrap overflow-auto" style="height:100%" type="transition" name="flip-list">
-        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.position" xs="6" sm="4" md="3" class="list-group-item">
-          <v-toolbar @click="enableInputUpdateFrameTitle(frame)" color="deep-purple" :dark="positionFrame !== frame.position" dense>
-            <v-toolbar-title v-if="positionFrame !== frame.position">{{ frame.title }} </v-toolbar-title>
+        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.collocation" xs="6" sm="4" md="3" class="list-group-item">
+          <v-toolbar @click="enableInputUpdateFrameTitle(frame)" color="deep-purple" :dark="collocationFrame !== frame.collocation" dense>
+            <v-toolbar-title v-if="collocationFrame !== frame.collocation">{{ frame.title }} </v-toolbar-title>
             <v-text-field
               v-else
               style="width: 100%"
@@ -90,7 +90,7 @@ export default {
     },
     pastFrame: {},
     presentFrame: {},
-    positionFrame: ''
+    collocationFrame: ''
   }),
   computed: {
     ...mapState('Frame', ['frames'])
@@ -126,13 +126,13 @@ export default {
       })
     },
     enableInputUpdateFrameTitle (frame) {
-      this.positionFrame = frame.position
+      this.collocationFrame = frame.collocation
       this.$nextTick(() => {
         this.$refs.inputFrameTitle[0].focus()
       })
     },
     createFrame (form) {
-      const frame = { ...form, position: this.framesCustom.length }
+      const frame = { ...form, collocation: this.framesCustom.length }
       this.$createOrUpdate({
         urlDispatch: 'Frame/create',
         params: frame,
@@ -152,7 +152,7 @@ export default {
       })
     },
     updateFrameTitle (frame) {
-      this.positionFrame = ''
+      this.collocationFrame = ''
       this.$createOrUpdate({
         urlDispatch: 'Frame/update',
         params: frame
@@ -160,7 +160,7 @@ export default {
     },
     updateFrames () {
       for (let index = 0; index < this.framesCustom.length; index++) {
-        const frame = { ...this.framesCustom[index], position: index }
+        const frame = { ...this.framesCustom[index], collocation: index }
         this.$createOrUpdate({
           urlDispatch: 'Frame/update',
           params: frame
