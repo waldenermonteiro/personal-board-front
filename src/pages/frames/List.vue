@@ -10,9 +10,22 @@
       v-bind="{ group: 'frames-group' }"
     >
       <transition-group ref="scroll" class="row flex-nowrap overflow-auto" style="height:100%" type="transition" name="flip-list">
-        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.order" xs="6" sm="4" md="3" class="list-group-item">
-          <v-toolbar color="deep-purple" dark dense>
-            <v-toolbar-title @click="test()">{{ frame.title }}</v-toolbar-title>
+        <v-col @mouseover="disabledDraggable(false)" v-for="frame in framesCustom" :key="frame.collocation" xs="6" sm="4" md="3" class="list-group-item">
+          <v-toolbar @click="enableInputUpdateFrameTitle(frame)" color="deep-purple" :dark="collocationFrame !== frame.collocation" dense>
+            <v-toolbar-title v-if="collocationFrame !== frame.collocation">{{ frame.title }} </v-toolbar-title>
+            <v-text-field
+              v-else
+              style="width: 100%"
+              @blur="updateFrameTitle(frame)"
+              @keyup.enter="updateFrameTitle(frame)"
+              v-model="frame.title"
+              ref="inputFrameTitle"
+              hide-details
+              solo
+              dense
+              placeholder="Enter a title for this frame"
+              outlined
+            ></v-text-field>
             <v-spacer></v-spacer>
             <v-menu offset-y>
               <template v-slot:activator="{ on, attrs }">
@@ -29,17 +42,17 @@
             </v-menu>
           </v-toolbar>
           <v-card class="list-group-item">
-            <list-tasks :frames="framesCustom" :list="frame.todos" :frame="frame"></list-tasks>
+            <list-tasks :frames="framesCustom" :list="frame.tasks" :frame="frame"></list-tasks>
           </v-card>
         </v-col>
         <v-col md="3" :key="1000" @mouseover="disabledDraggable(true)">
-          <v-toolbar v-if="!inputVisible" dense class="toolbar-custom" @click="activateTextArea(true)">
+          <v-toolbar v-if="!inputVisible" dense class="toolbar-custom" @click="enableInputCreateFrame(true)">
             <v-toolbar-title> <v-icon>mdi-plus</v-icon>Add other list</v-toolbar-title>
           </v-toolbar>
           <div v-show="inputVisible" style="background-color:#f6f6f4;padding: 8px">
             <v-text-field
               v-model="form.title"
-              ref="textFrame"
+              ref="inputCreateFrame"
               class="pb-2"
               hide-details
               solo
@@ -76,7 +89,8 @@ export default {
       title: ''
     },
     pastFrame: {},
-    presentFrame: {}
+    presentFrame: {},
+    collocationFrame: ''
   }),
   computed: {
     ...mapState('Frame', ['frames'])
@@ -105,17 +119,26 @@ export default {
     disabledDraggable (value) {
       this.disabled = value
     },
-    activateTextArea (value) {
+    enableInputCreateFrame (value) {
       this.inputVisible = value
+      this.$nextTick(() => {
+        this.$refs.inputCreateFrame.focus()
+      })
+    },
+    enableInputUpdateFrameTitle (frame) {
+      this.collocationFrame = frame.collocation
+      this.$nextTick(() => {
+        this.$refs.inputFrameTitle[0].focus()
+      })
     },
     createFrame (form) {
-      const frame = { ...form, order: this.framesCustom.length }
+      const frame = { ...form, collocation: this.framesCustom.length }
       this.$createOrUpdate({
         urlDispatch: 'Frame/create',
         params: frame,
         callback: () => {
           this.clearForm()
-          this.activateTextArea(false)
+          this.enableInputCreateFrame(false)
           this.$list({
             urlDispatch: 'Frame/list',
             callback: () => {
@@ -128,9 +151,16 @@ export default {
         }
       })
     },
+    updateFrameTitle (frame) {
+      this.collocationFrame = ''
+      this.$createOrUpdate({
+        urlDispatch: 'Frame/update',
+        params: frame
+      })
+    },
     updateFrames () {
       for (let index = 0; index < this.framesCustom.length; index++) {
-        const frame = { ...this.framesCustom[index], order: index }
+        const frame = { ...this.framesCustom[index], collocation: index }
         this.$createOrUpdate({
           urlDispatch: 'Frame/update',
           params: frame
@@ -144,7 +174,7 @@ export default {
         callback: () => {
           this.$list({ urlDispatch: 'Frame/list' })
           this.clearForm()
-          this.activateTextArea(false)
+          this.enableInputCreateFrame(false)
         }
       })
     },

@@ -1,7 +1,7 @@
 import Base from '../../../services/base'
 class TaskService extends Base {
   constructor () {
-    super('/todo')
+    super('/tasks')
   }
 }
 export default new TaskService()

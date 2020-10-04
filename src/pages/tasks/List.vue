@@ -1,24 +1,45 @@
 <template>
   <div>
     <v-list color="#f6f6f4" three-line>
-      <draggable :list="list" ghost-class="ghost" :move="checkMove" @start="dragging = true" @end="terminateMove" v-bind="{ group: 'tasks-group' }">
-        <transition-group class="list-custom" type="transition" name="flip-list">
+      <draggable :list="list" ghost-class="ghost" @start="dragging = true" @end="terminateMove" v-bind="{ group: 'tasks-group' }">
+        <transition-group class="list-custom" type="transition" name="flip-list" :id="frame.id">
           <v-list-item v-for="task in list" :key="task.id" class="list-group-item">
             <v-card class="v-card-custom">
               <v-list-item-content>
-                <v-list-item-subtitle class="list-item-title" v-text="task.title"></v-list-item-subtitle>
+                <v-list-item-subtitle class="list-item-title">
+                  <div class="d-flex justify-space-between" >
+                    <div class="align-self-center" >{{task.title}}</div>
+                    <div class="">
+                      <v-menu offset-y >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn icon v-bind="attrs" v-on="on">
+                            <v-icon >mdi-dots-horizontal</v-icon>
+                          </v-btn>
+                        </template>
+                        <v-list>
+                          <v-list-item style="cursor:pointer" v-for="(option, i) in options" :key="i" @click="deleteTask(task)">
+                            <v-list-item-title>{{ option.title }}</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </div>
+
+                  </div>
+
+                </v-list-item-subtitle>
               </v-list-item-content>
+
             </v-card>
           </v-list-item>
         </transition-group>
       </draggable>
       <div class="input-task" v-if="enableCreate">
-        <v-textarea v-model="form.title" class="pb-2" hide-details solo label="Enter a title for this task"></v-textarea>
+        <v-textarea ref="textAreaTaskTitle" v-model="form.title" class="pb-2" hide-details solo label="Enter a title for this task"></v-textarea>
         <v-btn @click="createTask(list)" color="success" small>Add task</v-btn>
         <v-btn @click="enableCreate = false" small icon><v-icon>mdi-close</v-icon></v-btn>
       </div>
     </v-list>
-    <div @click="enableCreate = true" v-if="!enableCreate" class="div-new-task"><v-icon>mdi-plus</v-icon>Add a new task</div>
+    <div @click="enableInputCreateTask" v-if="!enableCreate" class="div-new-task"><v-icon>mdi-plus</v-icon>Add a new task</div>
   </div>
 </template>
 <script>
@@ -40,19 +61,24 @@ export default {
   },
   data () {
     return {
+      options: [{ title: 'Delete Task' }],
       enableCreate: false,
       formCopy: {
         title: ''
       },
-      form: { ...this.formCopy },
-      pastFrame: {},
-      presentFrame: {}
+      form: { ...this.formCopy }
     }
   },
   methods: {
+    enableInputCreateTask () {
+      this.enableCreate = true
+      this.$nextTick(() => {
+        this.$refs.textAreaTaskTitle.focus()
+      })
+    },
     createTask (list) {
       if (this.form.title !== '') {
-        const task = { order: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
+        const task = { collocation: list.length, title: this.form.title, description: 'todo', frame_id: this.frame.id, open: true }
         this.$createOrUpdate({
           urlDispatch: 'Task/create',
           params: task,
@@ -68,26 +94,34 @@ export default {
         ...this.formCop
       }
     },
-    checkMove (e) {
-      this.pastFrame = e.draggedContext.element
-      this.presentFrame = e.relatedContext.element
-    },
-    terminateMove () {
-      const pastPresentFrames = this.frames.filter(frame => frame.id === this.pastFrame.frame_id || frame.id === this.presentFrame.frame_id)
+    terminateMove (e) {
+      const pastFrameId = e.from.id
+      const presentFrameId = e.to.id
+      const pastPresentFrames = this.frames.filter(frame => frame.id === pastFrameId || frame.id === presentFrameId)
       for (const frame of pastPresentFrames) {
-        for (const [index, task] of frame.todos.entries()) {
-          task.order = index
+        for (const [index, task] of frame.tasks.entries()) {
+          task.collocation = index
           if (task.frame_id !== frame.id) {
             task.frame_id = frame.id
           }
-          this.updateFrame(task)
+          this.updateTask(task)
         }
       }
     },
-    updateFrame (task) {
+    updateTask (task) {
       this.$createOrUpdate({
         urlDispatch: 'Task/update',
         params: task
+      })
+    },
+    deleteTask (task) {
+      this.$remove({
+        urlDispatch: 'Task/remove',
+        params: task,
+        callback: () => {
+          this.$list({ urlDispatch: 'Frame/list' })
+          this.clearForm()
+        }
       })
     }
   }

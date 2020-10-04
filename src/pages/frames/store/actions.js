@@ -6,7 +6,7 @@ export const list = async ({ commit }, params) => {
     const { data } = await FrameService.list(params)
     commit('SET_DATA', data)
   } catch (error) {
-    await error
+    throw error
   }
 }
 export const create = async ({ commit }, obj) => {

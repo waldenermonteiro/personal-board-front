@@ -25,7 +25,7 @@ export const update = async ({ commit }, obj) => {
 }
 export const remove = async ({ commit }, obj) => {
   try {
-    await TaskService.remove(obj._id)
+    await TaskService.remove(obj.id)
   } catch (error) {
     throw error
   }
