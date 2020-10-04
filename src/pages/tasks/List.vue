@@ -6,8 +6,29 @@
           <v-list-item v-for="task in list" :key="task.id" class="list-group-item">
             <v-card class="v-card-custom">
               <v-list-item-content>
-                <v-list-item-subtitle class="list-item-title" v-text="task.title"></v-list-item-subtitle>
+                <v-list-item-subtitle class="list-item-title">
+                  <div class="d-flex justify-space-between" >
+                    <div class="align-self-center" >{{task.title}}</div>
+                    <div class="">
+                      <v-menu offset-y >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn icon v-bind="attrs" v-on="on">
+                            <v-icon >mdi-dots-horizontal</v-icon>
+                          </v-btn>
+                        </template>
+                        <v-list>
+                          <v-list-item style="cursor:pointer" v-for="(option, i) in options" :key="i" @click="deleteTask(task)">
+                            <v-list-item-title>{{ option.title }}</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </div>
+
+                  </div>
+
+                </v-list-item-subtitle>
               </v-list-item-content>
+
             </v-card>
           </v-list-item>
         </transition-group>
@@ -40,6 +61,7 @@ export default {
   },
   data () {
     return {
+      options: [{ title: 'Delete Task' }],
       enableCreate: false,
       formCopy: {
         title: ''
@@ -90,6 +112,16 @@ export default {
       this.$createOrUpdate({
         urlDispatch: 'Task/update',
         params: task
+      })
+    },
+    deleteTask (task) {
+      this.$remove({
+        urlDispatch: 'Task/remove',
+        params: task,
+        callback: () => {
+          this.$list({ urlDispatch: 'Frame/list' })
+          this.clearForm()
+        }
       })
     }
   }
